@@ -1,0 +1,43 @@
+{
+  "name": "@sebastianlandgraf/livingair",
+  "packageManager": "yarn@4.6.0",
+  "version": "0.0.0",
+  "description": "Living Air client library",
+  "type": "module",
+  "scripts": {
+    "start": "node ./dist/test.js",
+    "lint": "eslint 'src/**/*.ts'",
+    "format": "prettier --write 'src/**/*.ts'",
+    "build": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sebastianlandgraf/livingair.git"
+  },
+  "author": "Sebastian Landgraf",
+  "license": "MIT",
+  "devDependencies": {
+    "@commitlint/cli": "^19.x.x",
+    "@commitlint/config-conventional": "^19.x.x",
+    "@semantic-release/git": "^10.0.1",
+    "@types/node": "^22.10.2",
+    "@types/xml-parser": "^1",
+    "@typescript-eslint/eslint-plugin": "^6.x.x",
+    "@typescript-eslint/parser": "^6.x.x",
+    "eslint": "^8.x.x",
+    "husky": "^9.1.6",
+    "prettier": "^3.x.x",
+    "semantic-release": "^24.1.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "xml-parser": "^1.2.1"
+  }
+}
