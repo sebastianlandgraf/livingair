@@ -1,2 +1,1 @@
-#!/bin/sh
 yarn exec commitlint --edit $1

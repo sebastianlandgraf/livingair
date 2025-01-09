@@ -12,7 +12,7 @@ export type ClientCallback = (response: string, error?: Error) => void;
 
 export type SoapMethod = 'Write' | 'Read';
 
-export const sizes: { [inde: string]: number } = {
+export const sizes: { [index: string]: number } = {
   bool: 1,
   int: 2,
   uint: 2,
@@ -21,6 +21,23 @@ export const sizes: { [inde: string]: number } = {
   schaltpunkt: 30,
   string: 16,
 };
+
+export enum dataPointTypeType {
+  bool = 'bool',
+  int = 'int',
+  uint = 'uint',
+  real = 'real',
+  error = 'error',
+  schaltpunkt = 'schaltpunkt',
+  string = 'string',
+}
+export interface DataPointType {
+  address: number;
+  value: any;
+  type: dataPointTypeType;
+  loopUpdate?: boolean;
+  length?: number;
+}
 
 export class SoapClient {
   constructor(
@@ -43,8 +60,6 @@ export class SoapClient {
     callback: ClientCallback,
   ) {
     const pData = convertWriteData(type, pwrData, cbRdLen);
-    console.log('pdata');
-    console.log(pData);
 
     SoapClient.query(
       'Write',
@@ -165,7 +180,6 @@ export class SoapClient {
 
     const req = http.request(options, (res) => {
       console.log(`STATUS: ${res.statusCode}`);
-      console.log(`HEADERS: ${JSON.stringify(res.headers)}`);
 
       // Collect response data
       let data = '';
@@ -183,7 +197,6 @@ export class SoapClient {
       callback('', new Error(`Problem with request: ${e.message}`));
     });
 
-    console.log(postBody);
     req.write(postBody);
 
     req.end();
@@ -192,13 +205,13 @@ export class SoapClient {
   processingError = false;
 
   processResponse(response: string, dataPoint: { type: string; value: any }) {
-    console.log('aa');
-    console.log(response);
-    //console.log('datapoint ' + dataPoint.address);
-    // Check the response for errors in the request
     try {
       const parser = new xml2js.Parser();
       parser.parseString(response, (error, result) => {
+        if (error) {
+          console.error('Error parsing XML:', error);
+          return;
+        }
         const soapEnvBody = result['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0];
 
         if (soapEnvBody['SOAP-ENV:Fault']) {
@@ -208,7 +221,6 @@ export class SoapClient {
           });
           if (this.connectionErrorCallback) this.connectionErrorCallback(true);
 
-          //showerror(errortext + " ("+errorcode+")");
           this.totalADSerrors += 1;
           if (this.totalADSerrors > 10) {
             this.processingError = true;
@@ -216,47 +228,38 @@ export class SoapClient {
 
           return;
         }
+
         try {
           // Check whether the response contains a <ppData> element. If so process it and retrieve the values.
           // If not it is a write request and therefore ignored.
-          const readResponse = soapEnvBody['ns1:ReadResponse'][0];
+          const readResponse = soapEnvBody['ns1:ReadResponse'];
           if (readResponse) {
-            let data = readResponse['ppData'][0];
+            let data = readResponse[0]['ppData'][0];
             // Since now the data is extracted from the response its contents need to be parsed so that the results can be displayed.
             //console.log("Data: " + data);
             // Decode result string
-            console.log('data ' + data);
             this.totalADSerrors = 0;
             data = b64t2d(data);
-
-            console.log('Data Decoded: ' + data);
 
             // software version
             const newVal = conversions[dataPoint.type](
               data.substring(0, sizes[dataPoint.type]),
             );
-            console.log('value');
-            console.log(newVal);
             dataPoint.value = newVal;
             //dataPoint.updateFunc(newVal);
             this.processingError = false;
           }
-          return;
+          const writeResponse = soapEnvBody['ns1:WriteResponse'];
+          if (writeResponse) {
+            console.log('got write response');
+          }
         } catch (e) {
           console.log('exception ' + e);
           this.processingError = true;
-          return;
         }
       });
     } catch (e) {
       console.log(e);
     }
   }
-}
-export interface DataPointType {
-  address: number;
-  value: any;
-  type: string;
-  loopUpdate?: boolean;
-  length?: number;
 }

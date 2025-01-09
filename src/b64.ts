@@ -35,7 +35,6 @@ export function b64t2d(input: string): string {
 export function encode_base64(d: any): string {
   const r: any[] = [];
   let i = 0;
-  console.log('d length' + d.length);
 
   while (i < d.length) {
     r[r.length] = b64s.charAt(d[i] >> 2);

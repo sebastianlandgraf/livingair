@@ -7,8 +7,8 @@ import {
 
 const lakIp = '192.168.1.21';
 const terminalIp = '192.168.1.22';
-const netId = lakIp + '.1.1';
 
 
-const client = new LivingAirClient(terminalIp, netId)
+const client = new LivingAirClient(terminalIp, lakIp);
 client.writeDatapoint(dataPoints.bAutomaticEnable,1,true)
+//client.readDataPoint(dataPoints.rRemainingTimeFilter)
