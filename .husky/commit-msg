@@ -1,2 +1,2 @@
-#!/bin/bash
-#yarn exec commitlint --edit $1
+#!/bin/sh
+yarn exec commitlint --edit $1

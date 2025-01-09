@@ -5,10 +5,13 @@
   "description": "Living Air client library",
   "type": "module",
   "scripts": {
+    "local": "husky ",
     "start": "node ./dist/test.js",
     "lint": "eslint 'src/**/*.ts'",
     "format": "prettier --write 'src/**/*.ts'",
-    "build": "tsc"
+    "build": "tsc",
+    "prepare": "yarn build",
+    "publish": "semantic-release"
   },
   "repository": {
     "type": "git",
@@ -21,7 +24,7 @@
     "@commitlint/config-conventional": "^19.x.x",
     "@semantic-release/git": "^10.0.1",
     "@types/node": "^22.10.2",
-    "@types/xml-parser": "^1",
+    "@types/xml2js": "^0",
     "@typescript-eslint/eslint-plugin": "^6.x.x",
     "@typescript-eslint/parser": "^6.x.x",
     "eslint": "^8.x.x",
@@ -38,6 +41,6 @@
     "dist"
   ],
   "dependencies": {
-    "xml-parser": "^1.2.1"
+    "xml2js": "^0.6.2"
   }
 }

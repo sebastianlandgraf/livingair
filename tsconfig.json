@@ -1,32 +1,33 @@
 {
   "compilerOptions": {
+    "baseUrl": "./",
+    "sourceRoot": "src",
     "outDir": "dist",
-    "module": "NodeNext",
-    "target": "es2023",
+    "module": "ESNext",
+    "target": "ESNext",
+    "sourceMap": true,
     "strict": true,
     "esModuleInterop": true,
+    "experimentalDecorators": true,
     "skipLibCheck": true,
     "isolatedModules": true,
     "declaration": true,
     "forceConsistentCasingInFileNames": true,
-    "moduleResolution": "nodenext",
-    "baseUrl": "./",
-    
+    "moduleResolution": "node",
+    "lib": ["ESNext","DOM"],
     "paths": {
       "*": [
         "node_modules/*",
+        "src/@types",
       ]
     },
-    "types": [
-      "node",
-      "@types/node"
+    "typeRoots": [
+      "./src/@types",
+      "./node_modules/@types"
     ]
   },
   "include": [
     "src/**/*.ts",
-    "src/**/*.tsx",
-    "src/**/*.js",
-    "src/**/*.jsx"
   ],
   "exclude": [
     "node_modules",

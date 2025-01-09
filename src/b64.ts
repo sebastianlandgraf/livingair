@@ -1,99 +1,51 @@
-//Generate a Base64 alphabet for the encoder. Using an array or object to
-//store the alphabet the en-/decoder runs faster than with the commonly
-//used string. At least with the browsers of 2009. ;-)
-const b64Enc = (function () {
-  const ret = [];
-  const str =
-    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+const b64s =
+  'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
 
-  for (let i = 0; i < str.length; i++) {
-    ret[i] = str.charAt(i);
-  }
-  return ret;
-})();
+export function b64t2d(input: string): string {
+  let output = '';
+  let chr1, chr2, chr3;
+  let enc1, enc2, enc3, enc4;
+  let i = 0;
 
-//Generate a Base64 alphabet for the decoder.
-const b64Dec = (function () {
-  const ret: Map<string, number> = new Map();
-  const str =
-    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
-
-  for (let i = 0; i < str.length; i++) {
-    ret.set(str.charAt(i), i);
-  }
-  return ret;
-})();
-
-/**
- * Base64 encoder
- *
- * @param {Array} data
- */
-export function encodeBase64(data: string | any[]) {
-  const $ = b64Enc;
-
-  let i = 0,
-    out = '',
-    c1,
-    c2,
-    c3;
-
-  while (i < data.length) {
-    c1 = data[i++];
-    c2 = data[i++];
-    c3 = data[i++];
-    out =
-      out +
-      $[c1 >> 2] +
-      $[((c1 & 3) << 4) | (c2 >> 4)] +
-      (isNaN(c2) ? '=' : $[((c2 & 15) << 2) | (c3 >> 6)]) +
-      (isNaN(c2) || isNaN(c3) ? '=' : $[c3 & 63]);
-  }
-  return out;
-}
-
-//======================================================================================
-//                                  Decoder Functions
-//======================================================================================
-
-/**
- * Base64 decoder
- *
- * @param {String} data
- */
-export function decodeBase64(data: string) {
-  const $ = b64Dec;
-  let i = 0,
-    output = '',
-    c1,
-    c2,
-    c3,
-    e1,
-    e2,
-    e3,
-    e4;
-
-  //Cut all characters but A-Z, a-z, 0-9, +, /, or =
-  data = data.replace(/[^A-Za-z0-9\+\/\=]/g, '');
+  // remove all characters that are not A-Z, a-z, 0-9, +, /, or =
+  input = input.replace(/[^A-Za-z0-9+/=]/g, '');
 
   do {
-    e1 = $.get(data.charAt(i++)) ?? 0;
-    e2 = $.get(data.charAt(i++)) ?? 0;
-    e3 = $.get(data.charAt(i++)) ?? 0;
-    e4 = $.get(data.charAt(i++)) ?? 0;
+    enc1 = b64s.indexOf(input.charAt(i++));
+    enc2 = b64s.indexOf(input.charAt(i++));
+    enc3 = b64s.indexOf(input.charAt(i++));
+    enc4 = b64s.indexOf(input.charAt(i++));
 
-    c1 = (e1 << 2) | (e2 >> 4);
-    c2 = ((e2 & 15) << 4) | (e3 >> 2);
-    c3 = ((e3 & 3) << 6) | e4;
+    chr1 = (enc1 << 2) | (enc2 >> 4);
+    chr2 = ((enc2 & 15) << 4) | (enc3 >> 2);
+    chr3 = ((enc3 & 3) << 6) | enc4;
 
-    output += String.fromCharCode(c1);
-    if (e3 !== 64) {
-      output += String.fromCharCode(c2);
+    output = output + String.fromCharCode(chr1);
+    if (enc3 != 64) {
+      output = output + String.fromCharCode(chr2);
     }
-    if (e4 !== 64) {
-      output += String.fromCharCode(c3);
+    if (enc4 != 64) {
+      output = output + String.fromCharCode(chr3);
     }
-  } while (i < data.length);
+  } while (i < input.length);
 
   return output;
+}
+
+export function encode_base64(d: any): string {
+  const r: any[] = [];
+  let i = 0;
+  console.log('d length' + d.length);
+
+  while (i < d.length) {
+    r[r.length] = b64s.charAt(d[i] >> 2);
+    r[r.length] = b64s.charAt(((d[i] & 3) << 4) | (d[i + 1] >> 4));
+    r[r.length] = b64s.charAt(((d[i + 1] & 15) << 2) | (d[i + 2] >> 6));
+    r[r.length] = b64s.charAt(d[i + 2] & 63);
+
+    if (i % 57 == 54) r[r.length] = '\n';
+    i += 3;
+  }
+  // Array in text zusammenf�hren
+  return r.join('');
 }
