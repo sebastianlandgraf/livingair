@@ -358,31 +358,28 @@ export class LivingAirClient extends SoapClient {
     return 2 * (address - 16384);
   }
 
-  writeDatapoint(dataPoint: any, value: any, dontReadBack: boolean) {
-    let callback;
-    const instance = this;
-    if (dontReadBack) {
-      callback = function (response: string) {
-        instance.processResponse(response, dataPoint);
-      };
-    } else {
-      callback = function (response: string) {
-        instance.processResponse(response, dataPoint);
-        instance.readDataPoint(dataPoint);
-      };
-    }
-
-    super.Write(
+  async writeDatapoint(dataPoint: any, value: any, dontReadBack: boolean) {
+    const ret = await this.Write(
       LivingAirIndexGroup,
       '' + this.convertAddress(dataPoint.address),
       sizes[dataPoint.type],
       value,
       dataPoint.type,
-      callback,
     );
+
+    await this.processResponse(ret, dataPoint);
+
+    if (!dontReadBack) {
+      this.readDataPoint(dataPoint);
+    }
   }
 
-  writeSchaltpunkt(day: string, type: string, point: number, value: any) {
+  async writeSchaltpunkt(
+    day: string,
+    type: string,
+    point: number,
+    value: any,
+  ): Promise<any> {
     //Safety net
     const instance = this;
 
@@ -406,25 +403,25 @@ export class LivingAirClient extends SoapClient {
 
       return;
     }
-    let baseAddress = 0;
+    let dataPoint = dataPoints.aScheduleStandardMonday;
 
     if (day == 'montag') {
-      baseAddress = dataPoints.aScheduleStandardMonday.address;
+      dataPoint = dataPoints.aScheduleStandardMonday;
     } else if (day == 'dienstag') {
-      baseAddress = dataPoints.aScheduleStandardTuesday.address;
+      dataPoint = dataPoints.aScheduleStandardTuesday;
     } else if (day == 'mittwoch') {
-      baseAddress = dataPoints.aScheduleStandardWednesday.address;
+      dataPoint = dataPoints.aScheduleStandardWednesday;
     } else if (day == 'donnerstag') {
-      baseAddress = dataPoints.aScheduleStandardThursday.address;
+      dataPoint = dataPoints.aScheduleStandardThursday;
     } else if (day == 'freitag') {
-      baseAddress = dataPoints.aScheduleStandardFriday.address;
+      dataPoint = dataPoints.aScheduleStandardFriday;
     } else if (day == 'samstag') {
-      baseAddress = dataPoints.aScheduleStandardSaturday.address;
+      dataPoint = dataPoints.aScheduleStandardSaturday;
     } else if (day == 'sonntag') {
-      baseAddress = dataPoints.aScheduleStandardSunday.address;
+      dataPoint = dataPoints.aScheduleStandardSunday;
     }
 
-    baseAddress = this.convertAddress(baseAddress);
+    const baseAddress = this.convertAddress(dataPoint.address);
 
     let offset = point * 6;
 
@@ -437,17 +434,15 @@ export class LivingAirClient extends SoapClient {
 
     const writeAddress = baseAddress + offset;
 
-    const callback = function (_response: string) {
-      //instance.processResponse(response, {});
-    };
-    super.Write(
+    const ret = await this.Write(
       LivingAirIndexGroup,
       '' + writeAddress,
       2,
       value,
       dataPointTypeType.int,
-      callback,
     );
+
+    return this.processResponse(ret, dataPoint);
   }
 
   readAllDataPoints() {
@@ -478,21 +473,12 @@ export class LivingAirClient extends SoapClient {
     }
   }
 
-  readDataPoint(dataPoint: DataPointType) {
-    const instance = this;
-    const callback = function (response: string) {
-      instance.processResponse(response, dataPoint);
-    };
-    super.Read(
+  async readDataPoint(dataPoint: DataPointType): Promise<any> {
+    const ret = await this.Read(
       LivingAirIndexGroup,
       '' + this.convertAddress(dataPoint.address),
       sizes[dataPoint.type],
-      callback,
     );
-    return callback;
-  }
-
-  processResponse(response: string, dataPoint: DataPointType) {
-    super.processResponse(response, dataPoint);
+    return this.processResponse(ret, dataPoint);
   }
 }

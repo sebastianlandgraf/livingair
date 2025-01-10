@@ -11,7 +11,8 @@
     "format": "prettier --write 'src/**/*.ts'",
     "build": "tsc",
     "prepare": "yarn build",
-    "publish": "semantic-release"
+    "publish": "semantic-release",
+    "test-local": "node ./tests/test.js"
   },
   "repository": {
     "type": "git",

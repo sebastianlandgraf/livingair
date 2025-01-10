@@ -101,8 +101,6 @@ function parsePLCReal(string: string) {
 }
 
 function parseSchaltpunkt(string: string) {
-  console.log('SP ' + string);
-  console.log(string);
   const schaltpunkt = [
     {
       stunde: parsePLCInt(string.substr(0, 2)),

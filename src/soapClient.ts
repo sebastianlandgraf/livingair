@@ -1,4 +1,4 @@
-import http from 'http';
+import http, { OutgoingHttpHeaders } from 'http';
 import xml2js from 'xml2js';
 
 import { convertWriteData } from './encode.js';
@@ -7,8 +7,6 @@ import { conversions } from './decode.js';
 import { b64t2d } from './b64.js';
 
 const scriptPath = '/script/TcAdsWebService/TcAdsWebService.dll';
-
-export type ClientCallback = (response: string, error?: Error) => void;
 
 export type SoapMethod = 'Write' | 'Read';
 
@@ -46,22 +44,16 @@ export class SoapClient {
     readonly nPort: number,
   ) {}
 
-  connectionErrorCallback: undefined | ((error: boolean) => void) = undefined;
-  listenForConnectionError(callback: (error: boolean) => void) {
-    this.connectionErrorCallback = callback;
-  }
-
-  Write(
+  async Write(
     indexGroup: string,
     indexOffset: string,
     cbRdLen: number,
     pwrData: any,
     type: string,
-    callback: ClientCallback,
-  ) {
-    const pData = convertWriteData(type, pwrData, cbRdLen);
+  ): Promise<string> {
+    const pData = SoapClient.prepareData(type, pwrData, cbRdLen);
 
-    SoapClient.query(
+    return SoapClient.query(
       'Write',
       this.terminalIp,
       this.netId,
@@ -69,9 +61,7 @@ export class SoapClient {
       indexGroup,
       indexOffset,
       0,
-      callback,
       pData,
-      cbRdLen,
     );
   }
 
@@ -79,9 +69,8 @@ export class SoapClient {
     indexGroup: string,
     indexOffset: string,
     cbRdLen: number,
-    callback: ClientCallback,
-  ) {
-    SoapClient.query(
+  ): Promise<string> {
+    return SoapClient.query(
       'Read',
       this.terminalIp,
       this.netId,
@@ -89,7 +78,6 @@ export class SoapClient {
       indexGroup,
       indexOffset,
       cbRdLen,
-      callback,
       '',
     );
   }
@@ -131,7 +119,7 @@ export class SoapClient {
     return sr;
   } //sends SOAP request
 
-  static query(
+  static async query(
     method: SoapMethod,
     proxyIp: string,
     netId: any,
@@ -139,18 +127,10 @@ export class SoapClient {
     indexGroup: any,
     indexOffset: any,
     cbRdLen: number,
-    callback: ClientCallback,
     pwrData?: any,
-    cbWrtLn?: number,
-  ) {
+  ): Promise<string> {
     // Input mode
 
-    if (pwrData && pwrData.length > 0) {
-      pwrData = encode_base64(pwrData);
-      if (pwrData.length > (cbWrtLn ?? 0)) {
-        pwrData = pwrData.substr(0, cbWrtLn);
-      }
-    }
     const postBody = SoapClient.createBody(
       method,
       netId,
@@ -161,105 +141,137 @@ export class SoapClient {
       pwrData,
     );
 
-    //let req = loadXMLDoc(url, callback);
-    const headers = {
-      Accept: '*/*',
-      'Accept-Encoding': 'gzip, deflate',
-      SOAPAction: 'http://beckhoff.org/action/TcAdsSync.' + method,
-      'Content-Length': postBody.length,
-      'Content-Type': 'text/plain;charset=UTF-8',
-    };
+    const headers = SoapClient.createHeader(method, postBody.length);
 
-    const options = {
+    const options = SoapClient.createRequestOptions(proxyIp, headers);
+
+    return new Promise<string>((resolve, reject) => {
+      const req = http.request(options, (res) => {
+        console.log(`STATUS: ${res.statusCode}`);
+
+        // Collect response data
+        let data = '';
+        res.on('data', (chunk) => {
+          data += chunk;
+        });
+
+        // End of response
+        res.on('end', () => {
+          resolve(data);
+        });
+      });
+
+      req.on('error', (e) => {
+        reject(`Problem with request: ${e.message}`);
+      });
+
+      req.write(postBody);
+
+      req.end();
+    });
+  }
+  totalADSerrors = 0;
+  processingError = false;
+
+  private static prepareData(type: string, pwrData: any, cbWrtLn: number) {
+    pwrData = convertWriteData(type, pwrData, cbWrtLn);
+
+    if (pwrData && pwrData.length > 0) {
+      pwrData = encode_base64(pwrData);
+      if (pwrData.length > (cbWrtLn ?? 0)) {
+        pwrData = pwrData.substr(0, cbWrtLn);
+      }
+    }
+    return pwrData;
+  }
+
+  private static createRequestOptions(
+    proxyIp: string,
+    headers: OutgoingHttpHeaders,
+  ) {
+    return {
       hostname: proxyIp,
       port: 80,
       method: 'POST',
       headers,
       path: scriptPath,
     };
-
-    const req = http.request(options, (res) => {
-      console.log(`STATUS: ${res.statusCode}`);
-
-      // Collect response data
-      let data = '';
-      res.on('data', (chunk) => {
-        data += chunk;
-      });
-
-      // End of response
-      res.on('end', () => {
-        callback(data);
-      });
-    });
-
-    req.on('error', (e) => {
-      callback('', new Error(`Problem with request: ${e.message}`));
-    });
-
-    req.write(postBody);
-
-    req.end();
   }
-  totalADSerrors = 0;
-  processingError = false;
 
-  processResponse(response: string, dataPoint: { type: string; value: any }) {
-    try {
-      const parser = new xml2js.Parser();
-      parser.parseString(response, (error, result) => {
-        if (error) {
-          console.error('Error parsing XML:', error);
-          return;
-        }
-        const soapEnvBody = result['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0];
+  private static createHeader(
+    method: string,
+    length: number,
+  ): OutgoingHttpHeaders {
+    return {
+      Accept: '*/*',
+      'Accept-Encoding': 'gzip, deflate',
+      SOAPAction: 'http://beckhoff.org/action/TcAdsSync.' + method,
+      'Content-Length': length,
+      'Content-Type': 'text/plain;charset=UTF-8',
+    };
+  }
 
-        if (soapEnvBody['SOAP-ENV:Fault']) {
-          soapEnvBody['SOAP-ENV:Fault'].forEach((element: any) => {
-            console.log(element.faultcode);
-            console.log(element.faultstring);
-          });
-          if (this.connectionErrorCallback) this.connectionErrorCallback(true);
+  processResponse(
+    response: string,
+    dataPoint: { type: string; value: any },
+  ): undefined | any {
+    return new Promise<any>((resolve, reject) => {
+      try {
+        const parser = new xml2js.Parser();
+        parser.parseString(response, (error, result) => {
+          if (error) {
+            reject(error);
+          }
+          const soapEnvBody = result['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0];
 
-          this.totalADSerrors += 1;
-          if (this.totalADSerrors > 10) {
-            this.processingError = true;
+          if (soapEnvBody['SOAP-ENV:Fault']) {
+            soapEnvBody['SOAP-ENV:Fault'].forEach((element: any) => {
+              console.log(element.faultcode);
+              console.log(element.faultstring);
+            });
+            reject(true);
+
+            this.totalADSerrors += 1;
+            if (this.totalADSerrors > 10) {
+              this.processingError = true;
+            }
+
+            reject(soapEnvBody['SOAP-ENV:Fault']);
           }
 
-          return;
-        }
+          try {
+            // Check whether the response contains a <ppData> element. If so process it and retrieve the values.
+            // If not it is a write request and therefore ignored.
+            const readResponse = soapEnvBody['ns1:ReadResponse'];
+            if (readResponse) {
+              let data = readResponse[0]['ppData'][0];
+              // Since now the data is extracted from the response its contents need to be parsed so that the results can be displayed.
+              // Decode result string
+              this.totalADSerrors = 0;
+              data = b64t2d(data);
 
-        try {
-          // Check whether the response contains a <ppData> element. If so process it and retrieve the values.
-          // If not it is a write request and therefore ignored.
-          const readResponse = soapEnvBody['ns1:ReadResponse'];
-          if (readResponse) {
-            let data = readResponse[0]['ppData'][0];
-            // Since now the data is extracted from the response its contents need to be parsed so that the results can be displayed.
-            //console.log("Data: " + data);
-            // Decode result string
-            this.totalADSerrors = 0;
-            data = b64t2d(data);
+              // software version
+              const newVal = conversions[dataPoint.type](
+                data.substring(0, sizes[dataPoint.type]),
+              );
+              dataPoint.value = newVal;
+              //dataPoint.updateFunc(newVal);
+              this.processingError = false;
 
-            // software version
-            const newVal = conversions[dataPoint.type](
-              data.substring(0, sizes[dataPoint.type]),
-            );
-            dataPoint.value = newVal;
-            //dataPoint.updateFunc(newVal);
-            this.processingError = false;
+              resolve(newVal);
+            }
+            const writeResponse = soapEnvBody['ns1:WriteResponse'];
+            if (writeResponse) {
+              console.log('got write response');
+              resolve(true);
+            }
+          } catch (e) {
+            reject(e);
           }
-          const writeResponse = soapEnvBody['ns1:WriteResponse'];
-          if (writeResponse) {
-            console.log('got write response');
-          }
-        } catch (e) {
-          console.log('exception ' + e);
-          this.processingError = true;
-        }
-      });
-    } catch (e) {
-      console.log(e);
-    }
+        });
+      } catch (e) {
+        reject(e);
+      }
+    });
   }
 }
