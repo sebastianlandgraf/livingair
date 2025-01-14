@@ -1,7 +1,7 @@
 {
   "name": "@sebastianlandgraf/livingair",
   "packageManager": "yarn@4.6.0",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Living Air client library",
   "type": "module",
   "main": "lib/index.js",
@@ -13,7 +13,7 @@
     "build": "tsc",
     "prepare": "yarn build",
     "publish": "semantic-release"
-    },
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/sebastianlandgraf/livingair.git"
