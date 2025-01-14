@@ -4,16 +4,16 @@
   "version": "1.0.0",
   "description": "Living Air client library",
   "type": "module",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "scripts": {
     "local": "husky ",
-    "start": "node ./dist/test.js",
     "lint": "eslint 'src/**/*.ts'",
     "format": "prettier --write 'src/**/*.ts'",
     "build": "tsc",
     "prepare": "yarn build",
-    "publish": "semantic-release",
-    "test-local": "node ./tests/test.js"
-  },
+    "publish": "semantic-release"
+    },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/sebastianlandgraf/livingair.git"
@@ -36,11 +36,15 @@
     "typescript": "^5.7.2"
   },
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com/"
+    "registry": "https://npm.pkg.github.com/",
+    "access": "public"
   },
   "files": [
-    "dist"
+    "lib"
   ],
+  "directories": {
+    "lib": "./lib"
+  },
   "dependencies": {
     "xml2js": "^0.6.2"
   }

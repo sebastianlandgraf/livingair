@@ -103,29 +103,29 @@ function parsePLCReal(string: string) {
 function parseSchaltpunkt(string: string) {
   const schaltpunkt = [
     {
-      stunde: parsePLCInt(string.substr(0, 2)),
-      minute: parsePLCInt(string.substr(2, 2)),
-      stufe: parsePLCInt(string.substr(4, 2)),
+      stunde: parsePLCInt(string.slice(0, 2)),
+      minute: parsePLCInt(string.slice(2, 4)),
+      stufe: parsePLCInt(string.slice(4, 6)),
     },
     {
-      stunde: parsePLCInt(string.substr(6, 2)),
-      minute: parsePLCInt(string.substr(8, 2)),
-      stufe: parsePLCInt(string.substr(10, 2)),
+      stunde: parsePLCInt(string.slice(6, 8)),
+      minute: parsePLCInt(string.slice(8, 10)),
+      stufe: parsePLCInt(string.slice(10, 12)),
     },
     {
-      stunde: parsePLCInt(string.substr(12, 2)),
-      minute: parsePLCInt(string.substr(14, 2)),
-      stufe: parsePLCInt(string.substr(16, 2)),
+      stunde: parsePLCInt(string.slice(12, 14)),
+      minute: parsePLCInt(string.slice(14, 16)),
+      stufe: parsePLCInt(string.slice(16, 18)),
     },
     {
-      stunde: parsePLCInt(string.substr(18, 2)),
-      minute: parsePLCInt(string.substr(20, 2)),
-      stufe: parsePLCInt(string.substr(22, 2)),
+      stunde: parsePLCInt(string.slice(18, 20)),
+      minute: parsePLCInt(string.slice(20, 22)),
+      stufe: parsePLCInt(string.slice(22, 24)),
     },
     {
-      stunde: parsePLCInt(string.substr(24, 2)),
-      minute: parsePLCInt(string.substr(26, 2)),
-      stufe: parsePLCInt(string.substr(28, 2)),
+      stunde: parsePLCInt(string.slice(24, 26)),
+      minute: parsePLCInt(string.slice(26, 28)),
+      stufe: parsePLCInt(string.slice(28, 30)),
     },
   ];
   for (const v in schaltpunkt) {
@@ -141,21 +141,6 @@ function parseSchaltpunkt(string: string) {
     }
   }
   return schaltpunkt;
-  //
-  //    schaltpunkt[0].;
-  //    schaltpunkt[0].stufe = ;
-  //    schaltpunkt[1].stunde = parsePLCInt(string.substr(6,2));
-  //    schaltpunkt[1].minute = parsePLCInt(string.substr(8,2));
-  //    schaltpunkt[1].stufe = parsePLCInt(string.substr(10,2));
-  //    schaltpunkt[2].stunde = parsePLCInt(string.substr(12,2));
-  //    schaltpunkt[2].minute = parsePLCInt(string.substr(14,2));
-  //    schaltpunkt[2].stufe = parsePLCInt(string.substr(16,2));
-  //    schaltpunkt[3].stunde = parsePLCInt(string.substr(18,2));
-  //    schaltpunkt[3].minute = parsePLCInt(string.substr(20,2));
-  //    schaltpunkt[3].stufe = parsePLCInt(string.substr(22,2));
-  //    schaltpunkt[4].stunde = parsePLCInt(string.substr(24,2));
-  //    schaltpunkt[4].minute = parsePLCInt(string.substr(26,2));
-  //    schaltpunkt[4].stufe = parsePLCInt(string.substr(28,2));
 }
 
 export const conversions: { [index: string]: (value: string) => any } = {
@@ -170,13 +155,13 @@ export const conversions: { [index: string]: (value: string) => any } = {
 
 function parsePLCError(string: string) {
   const error = {
-    bActive: parsePLCInt(string.substr(0, 2)),
-    year: parsePLCInt(string.substr(2, 2)),
-    month: parsePLCInt(string.substr(4, 2)),
-    day: parsePLCInt(string.substr(6, 2)),
-    hour: parsePLCInt(string.substr(8, 2)),
-    minute: parsePLCInt(string.substr(10, 2)),
-    counter: parsePLCInt(string.substr(12, 2)),
+    bActive: parsePLCInt(string.slice(0, 2)),
+    year: parsePLCInt(string.slice(2, 4)),
+    month: parsePLCInt(string.slice(4, 6)),
+    day: parsePLCInt(string.slice(6, 8)),
+    hour: parsePLCInt(string.slice(8, 10)),
+    minute: parsePLCInt(string.slice(10, 12)),
+    counter: parsePLCInt(string.slice(12, 14)),
   };
 
   return error;

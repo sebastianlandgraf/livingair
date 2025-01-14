@@ -13,9 +13,42 @@ Unfortunately the twincat protocol relies on a proxy to talk to, which is usuali
 
 In the end i ended up using the javascript provided by the control terminals webpage and refactored it into a typescript classes.
 
+
 # Supported Units
 I only have my own unit to test with.
 - Brötje Livingair LAK300
+
+
+# Communcation
+![image of the livingair unit](./doc/arch-com.drawio.png) 
+
+
+# Software Architecture
+
+![image of the livingair unit](./doc/arch-sw.drawio.png) 
+
+
+# Usage LivingAir Client 
+```typescript
+import {
+  LivingAirClient,
+  dataPoints,
+} from '@sebastianlandgraf/livingAirClient';
+const lakIp = '192.168.1.21';
+const terminalIp = '192.168.1.22';
+const client = new LivingAirClient(terminalIp, lakIp);
+await client.writeDatapoint(dataPoints.bAutomaticEnable,1,true)
+await client.readDataPoint(dataPoints.eSetpointFanLevel,3,true)
+```
+
+# Usage LivingAirService
+```typescript
+import {FanLevel, LivingAirService} from '@sebastianlandgraf/livingAirService';
+const service = new LivingAirService('192.168.1.22','192.168.1.21');
+service.fanLevel = FanLevel.AUTO;
+```
+
+
 
 # TODO
 - [ ] add more convinent abstraction of data points

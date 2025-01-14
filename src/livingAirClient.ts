@@ -1,6 +1,7 @@
 import {
   DataPointType,
   dataPointTypeType,
+  daySchaltpunkte,
   sizes,
   SoapClient,
 } from './soapClient.js';
@@ -8,7 +9,17 @@ import {
 const defaultPort = 800;
 const LivingAirIndexGroup = '16416';
 
-export type DatapointName = 'eSetpointFanLevel';
+export enum Days {
+  werktage,
+  alle,
+  montag,
+  dienstag,
+  mittwoch,
+  donnerstag,
+  freitag,
+  samstag,
+  sonntag,
+}
 
 export const dataPoints: { [index: string]: DataPointType } = {
   //Luefterstufe
@@ -153,37 +164,37 @@ export const dataPoints: { [index: string]: DataPointType } = {
   //Zeitprogramme
   aScheduleStandardMonday: {
     address: 16791,
-    value: {},
+    value: {} as daySchaltpunkte,
     type: dataPointTypeType.schaltpunkt,
   },
   aScheduleStandardTuesday: {
     address: 16806,
-    value: {},
+    value: {} as daySchaltpunkte,
     type: dataPointTypeType.schaltpunkt,
   },
   aScheduleStandardWednesday: {
     address: 16821,
-    value: {},
+    value: {} as daySchaltpunkte,
     type: dataPointTypeType.schaltpunkt,
   },
   aScheduleStandardThursday: {
     address: 16836,
-    value: {},
+    value: {} as daySchaltpunkte,
     type: dataPointTypeType.schaltpunkt,
   },
   aScheduleStandardFriday: {
     address: 16851,
-    value: {},
+    value: {} as daySchaltpunkte,
     type: dataPointTypeType.schaltpunkt,
   },
   aScheduleStandardSaturday: {
     address: 16866,
-    value: {},
+    value: {} as daySchaltpunkte,
     type: dataPointTypeType.schaltpunkt,
   },
   aScheduleStandardSunday: {
     address: 16881,
-    value: {},
+    value: {} as daySchaltpunkte,
     type: dataPointTypeType.schaltpunkt,
   },
   aScheduleNightVent1_Hour: {
@@ -370,54 +381,49 @@ export class LivingAirClient extends SoapClient {
     await this.processResponse(ret, dataPoint);
 
     if (!dontReadBack) {
-      this.readDataPoint(dataPoint);
+      await this.readDataPoint(dataPoint);
     }
   }
 
   async writeSchaltpunkt(
-    day: string,
-    type: string,
+    day: Days,
+    type: 'stunde' | 'minute' | 'stufe',
     point: number,
     value: any,
-  ): Promise<any> {
+  ): Promise<daySchaltpunkte | undefined> {
     //Safety net
     const instance = this;
 
+    if (point > 5 && point < 0) {
+      console.log('invalid schaltpunkt');
+      return;
+    }
+
     console.log('write schaltpunkt' + day + 'punkt' + point + type + value);
-    if (day == 'alle' || day == 'werktage') {
-      setTimeout(function () {
-        instance.writeSchaltpunkt('montag', type, point, value);
-      }, 0);
-      setTimeout(function () {
-        instance.writeSchaltpunkt('dienstag', type, point, value);
-      }, 200);
-      setTimeout(function () {
-        instance.writeSchaltpunkt('mittwoch', type, point, value);
-      }, 400);
-      setTimeout(function () {
-        instance.writeSchaltpunkt('donnerstag', type, point, value);
-      }, 600);
-      setTimeout(function () {
-        instance.writeSchaltpunkt('freitag', type, point, value);
-      }, 800);
+    if (day === Days.alle || day === Days.werktage) {
+      await instance.writeSchaltpunkt(Days.montag, type, point, value);
+      await instance.writeSchaltpunkt(Days.dienstag, type, point, value);
+      await instance.writeSchaltpunkt(Days.mittwoch, type, point, value);
+      await instance.writeSchaltpunkt(Days.donnerstag, type, point, value);
+      await instance.writeSchaltpunkt(Days.freitag, type, point, value);
 
       return;
     }
     let dataPoint = dataPoints.aScheduleStandardMonday;
 
-    if (day == 'montag') {
+    if (day === Days.montag) {
       dataPoint = dataPoints.aScheduleStandardMonday;
-    } else if (day == 'dienstag') {
+    } else if (day === Days.dienstag) {
       dataPoint = dataPoints.aScheduleStandardTuesday;
-    } else if (day == 'mittwoch') {
+    } else if (day === Days.mittwoch) {
       dataPoint = dataPoints.aScheduleStandardWednesday;
-    } else if (day == 'donnerstag') {
+    } else if (day === Days.donnerstag) {
       dataPoint = dataPoints.aScheduleStandardThursday;
-    } else if (day == 'freitag') {
+    } else if (day === Days.freitag) {
       dataPoint = dataPoints.aScheduleStandardFriday;
-    } else if (day == 'samstag') {
+    } else if (day === Days.samstag) {
       dataPoint = dataPoints.aScheduleStandardSaturday;
-    } else if (day == 'sonntag') {
+    } else if (day === Days.sonntag) {
       dataPoint = dataPoints.aScheduleStandardSunday;
     }
 
@@ -425,10 +431,10 @@ export class LivingAirClient extends SoapClient {
 
     let offset = point * 6;
 
-    if (type == 'minute') {
+    if (type === 'minute') {
       offset += 2;
     }
-    if (type == 'stufe') {
+    if (type === 'stufe') {
       offset += 4;
     }
 
@@ -442,34 +448,15 @@ export class LivingAirClient extends SoapClient {
       dataPointTypeType.int,
     );
 
-    return this.processResponse(ret, dataPoint);
+    await this.processResponse(ret, dataPoint);
+    await this.readDataPoint(dataPoint);
   }
 
   readAllDataPoints() {
-    const instance = this;
-    let delay = 0;
     for (const v in dataPoints) {
       const dataPoint = dataPoints[v];
 
-      if (dataPoint.loopUpdate) {
-        console.log(dataPoint);
-        setTimeout(
-          function (dp) {
-            instance.readDataPoint(dp);
-          },
-          delay,
-          dataPoint,
-        );
-        setTimeout(
-          (function (dp) {
-            return function () {
-              instance.readDataPoint(dp);
-            };
-          })(dataPoint),
-          delay,
-        );
-        delay += 400;
-      }
+      this.readDataPoint(dataPoint);
     }
   }
 

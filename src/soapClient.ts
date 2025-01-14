@@ -5,6 +5,7 @@ import { convertWriteData } from './encode.js';
 import { encode_base64 } from './b64.js';
 import { conversions } from './decode.js';
 import { b64t2d } from './b64.js';
+import { setTimeout } from 'timers/promises';
 
 const scriptPath = '/script/TcAdsWebService/TcAdsWebService.dll';
 
@@ -18,6 +19,20 @@ export const sizes: { [index: string]: number } = {
   error: 14,
   schaltpunkt: 30,
   string: 16,
+};
+
+export interface singleSchaltpunkt {
+  stunde: number;
+  minute: number;
+  stufe: number;
+}
+
+export type daySchaltpunkte = {
+  0: singleSchaltpunkt;
+  1: singleSchaltpunkt;
+  2: singleSchaltpunkt;
+  3: singleSchaltpunkt;
+  4: singleSchaltpunkt;
 };
 
 export enum dataPointTypeType {
@@ -38,6 +53,8 @@ export interface DataPointType {
 }
 
 export class SoapClient {
+  requestCounter = 0;
+  lastRequestId = 0;
   constructor(
     readonly terminalIp: string,
     readonly netId: string,
@@ -53,16 +70,7 @@ export class SoapClient {
   ): Promise<string> {
     const pData = SoapClient.prepareData(type, pwrData, cbRdLen);
 
-    return SoapClient.query(
-      'Write',
-      this.terminalIp,
-      this.netId,
-      this.nPort,
-      indexGroup,
-      indexOffset,
-      0,
-      pData,
-    );
+    return this.query('Write', indexGroup, indexOffset, 0, pData);
   }
 
   Read(
@@ -70,16 +78,7 @@ export class SoapClient {
     indexOffset: string,
     cbRdLen: number,
   ): Promise<string> {
-    return SoapClient.query(
-      'Read',
-      this.terminalIp,
-      this.netId,
-      this.nPort,
-      indexGroup,
-      indexOffset,
-      cbRdLen,
-      '',
-    );
+    return this.query('Read', indexGroup, indexOffset, cbRdLen, '');
   }
 
   static createBody(
@@ -119,22 +118,19 @@ export class SoapClient {
     return sr;
   } //sends SOAP request
 
-  static async query(
+  async query(
     method: SoapMethod,
-    proxyIp: string,
-    netId: any,
-    nPort: any,
     indexGroup: any,
     indexOffset: any,
     cbRdLen: number,
     pwrData?: any,
   ): Promise<string> {
-    // Input mode
+    const requestId = (this.requestCounter++) + 1;
 
     const postBody = SoapClient.createBody(
       method,
-      netId,
-      nPort,
+      this.netId,
+      this.nPort.toString(),
       indexGroup,
       indexOffset,
       cbRdLen,
@@ -143,7 +139,11 @@ export class SoapClient {
 
     const headers = SoapClient.createHeader(method, postBody.length);
 
-    const options = SoapClient.createRequestOptions(proxyIp, headers);
+    const options = SoapClient.createRequestOptions(this.terminalIp, headers);
+
+    while (requestId !== (this.lastRequestId+1)) {
+      await setTimeout(100);
+    }
 
     return new Promise<string>((resolve, reject) => {
       const req = http.request(options, (res) => {
@@ -158,6 +158,7 @@ export class SoapClient {
         // End of response
         res.on('end', () => {
           resolve(data);
+          this.lastRequestId = requestId;
         });
       });
 
@@ -179,7 +180,7 @@ export class SoapClient {
     if (pwrData && pwrData.length > 0) {
       pwrData = encode_base64(pwrData);
       if (pwrData.length > (cbWrtLn ?? 0)) {
-        pwrData = pwrData.substr(0, cbWrtLn);
+        pwrData = pwrData.slice(0, cbWrtLn);
       }
     }
     return pwrData;
@@ -252,7 +253,7 @@ export class SoapClient {
 
               // software version
               const newVal = conversions[dataPoint.type](
-                data.substring(0, sizes[dataPoint.type]),
+                data.slice(0, sizes[dataPoint.type]),
               );
               dataPoint.value = newVal;
               //dataPoint.updateFunc(newVal);
