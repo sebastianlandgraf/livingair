@@ -7,4 +7,5 @@
   "eslint.nodePath": ".yarn/sdks",
   "typescript.enablePromptUseWorkspaceTsdk": true,
   "prettier.prettierPath": ".yarn/sdks/prettier/index.cjs",
+  "livePreview.serverRoot": "doc/"
 }

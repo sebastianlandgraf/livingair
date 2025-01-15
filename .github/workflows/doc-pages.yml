@@ -31,6 +31,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Create HTML
+        run: |
+          npx -y github-readme-to-html -i ./README.md -d doc &&  npx -y replace '"./doc' '"' doc/index.html
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
