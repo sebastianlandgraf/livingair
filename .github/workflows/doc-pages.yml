@@ -2,9 +2,12 @@
 name: Deploy static content to Pages
 
 on:
-  # Runs on pushes targeting the default branch
-  push:
-    branches: ["main"]
+  workflow_run:
+    workflows: ["Publish"]
+    types:
+      - completed
+    branches:
+      - main
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -31,9 +34,15 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Get Version
+        run: |
+          echo "RESULT=$(node -p "require('./package.json').version")" 
+          echo "PACKAGE_VERSION=$RESULT" >> $GITHUB_ENV
       - name: Create HTML
         run: |
-          npx -y github-readme-to-html -i ./README.md -d doc &&  npx -y replace '"./doc' '"' doc/index.html
+          npx -y github-readme-to-html -i ./README.md -t "LivingAir $PACKAGE_VERSION" -d doc
+          npx -y replace '"./doc' '"/livingair' doc/index.html
+          npx -y replace '>livingair<' '>livingair $PACKAGE_VERSION<' doc/index.html
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
