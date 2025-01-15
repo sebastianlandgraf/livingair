@@ -36,13 +36,13 @@ jobs:
         uses: actions/checkout@v4
       - name: Get Version
         run: |
-          echo "RESULT=$(node -p "require('./package.json').version")" 
-          echo "PACKAGE_VERSION=$RESULT" >> $GITHUB_ENV
+          echo "PACKAGE_VERSION=$(node -p "require('./package.json').version")" 
+          echo "PACKAGE_VERSION=$PACKAGE_VERSION" >> $GITHUB_ENV
       - name: Create HTML
         run: |
-          npx -y github-readme-to-html -i ./README.md -t "LivingAir $PACKAGE_VERSION" -d doc
+          npx -y github-readme-to-html -i ./README.md -t "LivingAir ${{env.PACKAGE_VERSION}}" -d doc
           npx -y replace '"./doc' '"/livingair' doc/index.html
-          npx -y replace '>livingair<' '>livingair $PACKAGE_VERSION<' doc/index.html
+          npx -y replace '>livingair<' '>livingair ${{env.PACKAGE_VERSION}}<' doc/index.html
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
