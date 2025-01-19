@@ -27,8 +27,12 @@ export class LivingAirService {
     while (this.loop) {
       this.client.readAllDataPoints();
       console.log('Refreshing');
-      setTimeout(1000);
+      setTimeout(5000);
     }
+  }
+
+  async refresh(): Promise<void> {
+    await this.client.readAllDataPoints(false);
   }
 
   stopRefreshing() {

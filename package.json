@@ -24,6 +24,7 @@
     "@commitlint/cli": "^19.x.x",
     "@commitlint/config-conventional": "^19.x.x",
     "@semantic-release/git": "^10.0.1",
+    "@types/command-line-args": "^5.2.3",
     "@types/node": "^22.10.2",
     "@types/xml2js": "^0",
     "@typescript-eslint/eslint-plugin": "^6.x.x",
@@ -46,6 +47,8 @@
     "lib": "./lib"
   },
   "dependencies": {
+    "command-line-args": "^6.0.1",
     "xml2js": "^0.6.2"
-  }
+  },
+  "bin": "lib/cli.js"
 }

@@ -125,7 +125,7 @@ export class SoapClient {
     cbRdLen: number,
     pwrData?: any,
   ): Promise<string> {
-    const requestId = (this.requestCounter++) + 1;
+    const requestId = this.requestCounter++ + 1;
 
     const postBody = SoapClient.createBody(
       method,
@@ -141,8 +141,8 @@ export class SoapClient {
 
     const options = SoapClient.createRequestOptions(this.terminalIp, headers);
 
-    while (requestId !== (this.lastRequestId+1)) {
-      await setTimeout(100);
+    while (requestId !== this.lastRequestId + 1) {
+      await setTimeout(50);
     }
 
     return new Promise<string>((resolve, reject) => {

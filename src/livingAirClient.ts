@@ -452,11 +452,15 @@ export class LivingAirClient extends SoapClient {
     await this.readDataPoint(dataPoint);
   }
 
-  readAllDataPoints() {
+  async readAllDataPoints(parallel: boolean = false): Promise<void> {
     for (const v in dataPoints) {
       const dataPoint = dataPoints[v];
 
-      this.readDataPoint(dataPoint);
+      if (parallel) {
+        this.readDataPoint(dataPoint);
+      } else {
+        await this.readDataPoint(dataPoint);
+      }
     }
   }
 
