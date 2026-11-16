@@ -180,7 +180,9 @@ class LivingAirApi:
         fault = self._find_local(root, "Fault")
         if fault is not None:
             fault_text = " ".join((fault.itertext()))
-            raise LivingAirProtocolError(f"SOAP fault: {fault_text}")
+            raise LivingAirProtocolError(
+                f"SOAP {method} fault at index offset {address}: {fault_text}"
+            )
         return root
 
     def _soap_body(

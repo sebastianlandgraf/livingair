@@ -1,0 +1,40 @@
+set_schedule:
+  name: Set weekly schedule
+  description: Write up to five fan-level transitions to each selected weekday. An empty schedule clears the selected days.
+  fields:
+    unit_ip:
+      name: Unit IP address
+      description: The configured IP address of the Livingair unit.
+      required: true
+      example: 192.168.1.21
+      selector:
+        text:
+    days:
+      name: Weekdays
+      description: Weekdays to update.
+      required: true
+      example:
+        - monday
+        - tuesday
+      selector:
+        select:
+          multiple: true
+          options:
+            - monday
+            - tuesday
+            - wednesday
+            - thursday
+            - friday
+            - saturday
+            - sunday
+    schedule:
+      name: Transitions
+      description: Ordered transitions with hour, minute, and fan level from 0 to 4. Hour 24 is allowed only with minute 0.
+      required: true
+      example:
+        - hour: 6
+          minute: 30
+          level: 2
+        - hour: 22
+          minute: 0
+          level: 1

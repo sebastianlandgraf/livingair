@@ -109,10 +109,12 @@ schedule:
     level: 1
 ```
 
-The filter reset button sends a reset pulse to the controller. Polling is
-local, every 30 seconds. Verify schedule writes, fault indications, and the
-filter reset behavior on the target unit before relying on them; the original
-library was only exercised against one LAK300.
+The **Get current configuration** button requests an immediate read from the
+terminal and refreshes the Home Assistant entities, including the weekday
+schedule attributes. The filter reset button sends a reset pulse to the
+controller. Polling is local, every 30 seconds. Verify schedule writes, fault
+indications, and the filter reset behavior on the target unit before relying
+on them; the original library was only exercised against one LAK300.
 
 Before submitting this repository to the HACS default list, publish a release
 that includes the integration and keep the manifest version in sync with the

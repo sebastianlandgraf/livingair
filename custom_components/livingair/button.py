@@ -16,11 +16,26 @@ from .entity import LivingAirEntity
 async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_entities
 ) -> None:
-    """Set up Livingair buttons."""
+    """Set up Livingair action buttons."""
     coordinator: LivingAirCoordinator = hass.data[DOMAIN][entry.entry_id]
     async_add_entities(
-        [LivingAirFilterReset(coordinator, entry.data["unit_ip"])]
+        [
+            LivingAirConfigurationRefresh(coordinator, entry.data["unit_ip"]),
+            LivingAirFilterReset(coordinator, entry.data["unit_ip"]),
+        ]
     )
+
+
+class LivingAirConfigurationRefresh(LivingAirEntity, ButtonEntity):
+    """Refresh the current configuration from the terminal."""
+
+    _attr_name = "Get current configuration"
+
+    def __init__(self, coordinator: LivingAirCoordinator, unit_ip: str) -> None:
+        super().__init__(coordinator, unit_ip, "get_current_configuration")
+
+    async def async_press(self) -> None:
+        await self.coordinator.async_request_refresh()
 
 
 class LivingAirFilterReset(LivingAirEntity, ButtonEntity):
