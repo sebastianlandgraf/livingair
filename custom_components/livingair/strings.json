@@ -1,0 +1,53 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to Brötje Livingair",
+        "description": "Enter the address of the control terminal and the unit's IP address.",
+        "data": {
+          "terminal_host": "Control terminal host",
+          "unit_ip": "Livingair unit IP address"
+        }
+      }
+    },
+    "error": {
+      "invalid_host": "Enter a valid host name or IP address.",
+      "invalid_ip": "Enter a valid IPv4 address for the unit.",
+      "cannot_connect": "Could not communicate with the Livingair controller."
+    },
+    "abort": {
+      "already_configured": "This Livingair unit is already configured."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "schedule_monday": { "name": "Monday schedule transitions" },
+      "schedule_tuesday": { "name": "Tuesday schedule transitions" },
+      "schedule_wednesday": { "name": "Wednesday schedule transitions" },
+      "schedule_thursday": { "name": "Thursday schedule transitions" },
+      "schedule_friday": { "name": "Friday schedule transitions" },
+      "schedule_saturday": { "name": "Saturday schedule transitions" },
+      "schedule_sunday": { "name": "Sunday schedule transitions" }
+    }
+  },
+  "services": {
+    "set_schedule": {
+      "name": "Set weekly schedule",
+      "description": "Write up to five fan-level transitions to each selected weekday. An empty schedule clears that day.",
+      "fields": {
+        "unit_ip": {
+          "name": "Unit IP address",
+          "description": "The configured IP address of the Livingair unit."
+        },
+        "days": {
+          "name": "Weekdays",
+          "description": "Weekdays to update (monday through sunday)."
+        },
+        "schedule": {
+          "name": "Transitions",
+          "description": "Ordered transitions with hour (0 to 24, where 24 requires minute 0), minute, and fan level from 0 to 4."
+        }
+      }
+    }
+  }
+}

@@ -58,3 +58,61 @@ service.fanLevel = FanLevel.AUTO;
 In a different repo i would like to add a small webserver which can be used to control the livingair unit via a webinterface.
 - [ ] create webserver for livingair unit
 - [ ] create a automated schedule with more control points
+
+# Home Assistant integration
+
+This repository also contains a native Home Assistant custom integration in
+`custom_components/livingair`. It is separate from the published TypeScript
+package and communicates with the unit through the same local TwinCAT SOAP
+proxy.
+
+## Install
+
+After a GitHub release containing the integration is available, add this
+repository as a custom repository in HACS (Integration category), install
+**Brötje Livingair**, and restart Home Assistant. Until that release exists,
+download or copy the `custom_components/livingair` directory into your Home
+Assistant `config/custom_components/` directory and restart.
+
+In Home Assistant, add the **Brötje Livingair** integration and enter:
+
+- The control terminal host/IP address (HTTP port 80 must be reachable).
+- The Livingair unit's IPv4 address.
+
+Setup probes the controller before saving. The integration currently targets
+the Brötje Livingair LAK300; other models have not been verified.
+
+## Entities and schedule service
+
+The integration creates a fan with automatic mode, supply-air and outdoor-air
+temperature sensors, filter-time status, night-ventilation and occupied
+switches, fault binary sensors, and weekday schedule sensors. The schedule
+sensors expose their transitions as attributes.
+
+Use the `livingair.set_schedule` service to write up to five transitions to
+one or more weekdays. An empty `schedule` clears the selected days. Transitions
+must be in increasing time order; `hour` may be 24 only with `minute: 0`.
+`level` is the controller's fan level from 0 to 4. Example service data:
+
+```yaml
+unit_ip: 192.168.1.21
+days:
+  - monday
+  - tuesday
+schedule:
+  - hour: 6
+    minute: 30
+    level: 2
+  - hour: 22
+    minute: 0
+    level: 1
+```
+
+The filter reset button sends a reset pulse to the controller. Polling is
+local, every 30 seconds. Verify schedule writes, fault indications, and the
+filter reset behavior on the target unit before relying on them; the original
+library was only exercised against one LAK300.
+
+Before submitting this repository to the HACS default list, publish a release
+that includes the integration and keep the manifest version in sync with the
+release process.
