@@ -11,6 +11,7 @@ from .coordinator import LivingAirCoordinator
 from .entity import LivingAirEntity
 
 SWITCHES = {
+    "automatic": ("Automatic mode", 16934, "int"),
     "night_ventilation": ("Night ventilation", 16534, "int"),
     "occupied": ("Occupied", 16941, "uint"),
 }

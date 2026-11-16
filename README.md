@@ -84,10 +84,11 @@ the Brötje Livingair LAK300; other models have not been verified.
 
 ## Entities and schedule service
 
-The integration creates a fan with automatic mode, supply-air and outdoor-air
-temperature sensors, filter-time status, night-ventilation and occupied
-switches, fault binary sensors, and weekday schedule sensors. The schedule
-sensors expose their transitions as attributes.
+The integration creates a fan entity for manual fan level and a separate
+automatic-mode switch, supply-air and outdoor-air temperature sensors,
+remaining filter time in hours, night-ventilation and occupied switches,
+fault binary sensors, and weekday schedule sensors. The schedule sensors
+expose their transitions as attributes.
 
 Use the `livingair.set_schedule` service to write up to five transitions to
 one or more weekdays. An empty `schedule` clears the selected days. Transitions

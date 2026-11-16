@@ -8,7 +8,7 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import UnitOfTemperature
+from homeassistant.const import UnitOfTemperature, UnitOfTime
 from homeassistant.core import HomeAssistant
 
 from .api import SCHEDULE_ADDRESSES
@@ -44,6 +44,7 @@ async def async_setup_entry(
             entry.data["unit_ip"],
             "filter_time",
             "Remaining filter time",
+            native_unit=UnitOfTime.HOURS,
         ),
     ]
     entities.extend(
