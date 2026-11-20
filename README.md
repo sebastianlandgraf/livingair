@@ -84,8 +84,9 @@ the Brötje Livingair LAK300; other models have not been verified.
 
 ## Entities and schedule service
 
-The integration creates a fan entity for manual fan level and a separate
-automatic-mode switch, supply-air and outdoor-air temperature sensors,
+The integration creates a fan entity with discrete **Level 1** through
+**Level 4** presets for manual fan control and a separate automatic-mode
+switch, supply-air and outdoor-air temperature sensors,
 remaining filter time in hours, night-ventilation and occupied switches,
 fault binary sensors, and weekday schedule sensors. The schedule sensors
 expose their transitions as attributes.
